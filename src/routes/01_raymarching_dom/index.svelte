@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { calcShaderPosition, initRenderer } from '$lib/three/renderer';
 	import { onMount } from 'svelte';
+	import anime from 'animejs';
 
 	import * as THREE from 'three';
 
@@ -36,6 +37,83 @@
 		const btnShaderRect = calcShaderPosition(btnRect.x, btnRect.y, btnRect.width, btnRect.height);
 		btnVec.set(btnShaderRect.x, btnShaderRect.y, btnShaderRect.width, btnShaderRect.height);
 
+		const buttonProgress = {
+			hovering: 0,
+			pressing: 0,
+			vector: new THREE.Vector4()
+		};
+
+		let animation: anime.AnimeInstance;
+
+		const onHoverEnter = anime({
+			targets: buttonProgress,
+			hovering: [0, 1],
+			round: 10000,
+			easing: 'linear',
+			autoPlay: false,
+			duration: 150,
+			change: () => {
+				buttonProgress.vector.setX(buttonProgress.hovering);
+			},
+			update: () => {
+				buttonProgress.vector.setX(buttonProgress.hovering);
+			}
+		});
+		const onHoverLeave = anime({
+			targets: buttonProgress,
+			hovering: [1, 0],
+			round: 10000,
+			easing: 'linear',
+			autoPlay: false,
+			duration: 150,
+			change: () => {
+				buttonProgress.vector.setX(buttonProgress.hovering);
+			},
+			update: () => {
+				buttonProgress.vector.setX(buttonProgress.hovering);
+			}
+		});
+
+		const onButtonDown = anime({
+			targets: buttonProgress,
+			pressing: [0, 1],
+			round: 10000,
+			easing: 'linear',
+			autoPlay: false,
+			duration: 100,
+			change: () => {
+				buttonProgress.vector.setY(buttonProgress.pressing);
+			}
+		});
+		const onButtonUp = anime({
+			targets: buttonProgress,
+			pressing: [1, 0],
+			round: 10000,
+			easing: 'linear',
+			autoPlay: false,
+			duration: 100,
+			change: () => {
+				buttonProgress.vector.setY(buttonProgress.pressing);
+			}
+		});
+
+		button.addEventListener('mouseover', () => {
+			console.log('enter');
+			onHoverEnter.play();
+		});
+
+		button.addEventListener('mouseleave', () => {
+			onHoverLeave.play();
+		});
+
+		button.addEventListener('mousedown', () => {
+			onButtonDown.play();
+		});
+
+		button.addEventListener('mouseup', () => {
+			onButtonUp.play();
+		});
+
 		const camera = new THREE.OrthographicCamera(1 / -2, 1 / 2, 1 / 2, 1 / -2, 1, 1000);
 		camera.position.set(0, 0, 2);
 
@@ -51,6 +129,7 @@
 				matcap: {
 					value: new THREE.TextureLoader().load(matcap)
 				},
+				progress: { value: buttonProgress.vector },
 				button: {
 					value: btnVec
 				}
@@ -66,8 +145,9 @@
 		const clock = new THREE.Clock();
 
 		document.addEventListener('mousemove', (e) => {
-			mouse.x = e.pageX / width - 0.5;
-			mouse.y = -e.pageY / height + 0.5;
+			const { x, y } = calcShaderPosition(e.pageX, e.pageY, 0, 0);
+			mouse.x = -x;
+			mouse.y = y;
 		});
 
 		window.addEventListener('resize', () => {
@@ -91,9 +171,15 @@
 		const loop = () => {
 			const elapsedTime = clock.getElapsedTime();
 
+			if (animation) {
+				//@ts-ignore
+				// animation.tick();
+			}
+
 			shaderMaterial.uniforms.time.value = elapsedTime;
 			shaderMaterial.uniforms.mouse.value = mouse;
 			shaderMaterial.uniforms.button.value = btnVec;
+			shaderMaterial.uniforms.progress.value = buttonProgress.vector;
 
 			renderer.render(scene, camera);
 

@@ -3,6 +3,8 @@ uniform sampler2D matcap;
 uniform vec4 button;
 uniform vec4 resolution;
 uniform vec2 mouse;
+// x - hover, y - click
+uniform vec4 progress;
 varying vec2 vUv;
 
 mat4 rotationMatrix(vec3 axis, float angle) {
@@ -40,6 +42,12 @@ float sdSphere(vec3 p, float r){
   return length(p)-r;
 }
 
+float sdRoundBox( vec3 p, vec3 b, float r )
+{
+  vec3 q = abs(p) - b;
+  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0) - r;
+}
+
 float sdBox( vec3 p, vec3 b )
 {
   vec3 q = abs(p) - b;
@@ -50,15 +58,43 @@ float rand(vec2 co){
   return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+float opSmoothSubtraction( float d1, float d2, float k ) {
+    float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
+    return mix( d2, -d1, h ) + k*h*(1.0-h); }
+
 float sdf(vec3 p){
+  vec3 p1 = rotate(p, vec3(1.,1.,1.), 0.5*progress.x);
+  // p = p1;
 
-  vec3 boxSize = vec3(button.zw*resolution.zw, 0.02);
-  vec3 boxPos = vec3(vec2(button.xy*resolution.zw*2.) + boxSize.xy, 0.);
+  vec3 boxSize = vec3(button.zw*resolution.zw, 0.02) ;
+  vec2 boxPos = vec2(button.xy*resolution.zw*2.) + boxSize.xy;
+  // float d = -boxSize.z*1.6 + progress * boxSize.z*3.1 ;
+  float d = -boxSize.z*1.6;
 
-  float box = sdBox(p + boxPos, boxSize);
+  float box = sdRoundBox(p1 - vec3(boxPos.x, -boxPos.y, d), boxSize*0.9, .03);
 
- 
-  return box;
+
+  float final = box;
+
+  if(progress.x>0.1){
+    
+    for(float i=0.; i < 16.; i++){
+      float randOffset = rand(vec2(i,0.));
+      float progr =  fract(time / 3. + randOffset*3.);
+      vec2 pos = vec2(sin(randOffset*2.*PI), cos(randOffset*2.*PI))*0.35 * progress.x;
+      float bDist = distance(pos, boxPos);
+      float gotoCenter = sdSphere(p - vec3(pos*progr, -0.2*bDist), 0.02*progress.x * (1.-progr));
+
+      final = smin(final, gotoCenter, 0.07 );
+    }
+  }
+  
+  
+
+  float pressSub = sdRoundBox(p1 - vec3(boxPos.x, -boxPos.y, 0.08*-progress.y+0.1), boxSize, .04);
+
+  // return final;
+  return opSmoothSubtraction(pressSub, final, 0.015);
 }
 
 
