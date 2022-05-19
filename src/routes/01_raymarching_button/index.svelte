@@ -6,11 +6,6 @@
 
 	import matcap from './matcap.png';
 
-	import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
-	import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
-	import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
-	import { PixelShader } from 'three/examples/jsm/shaders/PixelShader.js';
-
 	import vertexShader from './_shaders/vertex.glsl';
 	import fragmentShader from './_shaders/fragment.glsl';
 
@@ -25,10 +20,6 @@
 			a2 = 1;
 		const width = window.innerWidth;
 		const height = window.innerHeight;
-
-		const PARAMS = {
-			progress: 0
-		};
 
 		if (height / width > imageAspect) {
 			a1 = (width / height) * imageAspect;
@@ -52,9 +43,6 @@
 				mouse: { value: mouse },
 				matcap: {
 					value: new THREE.TextureLoader().load(matcap)
-				},
-				progress: {
-					value: 0
 				}
 			},
 			vertexShader,
@@ -63,9 +51,6 @@
 		});
 
 		const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), shaderMaterial);
-
-		// plane.rotation.set(-Math.PI / 2, 0, 0)
-		plane.receiveShadow = true;
 		scene.add(plane);
 
 		const clock = new THREE.Clock();
@@ -80,7 +65,6 @@
 
 			shaderMaterial.uniforms.time.value = elapsedTime;
 			shaderMaterial.uniforms.mouse.value = mouse;
-			shaderMaterial.uniforms.progress.value = PARAMS.progress;
 
 			renderer.render(scene, camera);
 
@@ -99,5 +83,8 @@
 		width: 100vw;
 		height: 100vh;
 		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: -1;
 	}
 </style>

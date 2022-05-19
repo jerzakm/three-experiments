@@ -1,5 +1,4 @@
 uniform float time;
-uniform float progress;
 uniform sampler2D matcap;
 uniform vec4 resolution;
 uniform vec2 mouse;
@@ -54,25 +53,10 @@ float sdf(vec3 p){
 
   vec3 p1 = rotate(vec3(p), vec3(1.), time / 2.);
   float box = smin(sdBox(p1, vec3(0.2)), sdSphere(p, 0.2), 0.2);
-  float realsphere = sdSphere(p1, (0.2));
-  float final = mix(box,realsphere, progress);
+  float realsphere = sdSphere(p1, (0.2));  
 
-  
-  for(float i=0.; i < 10.; i++){
-    float randOffset = rand(vec2(i,0.));
-    float progr = 1. - fract(time / 2. + randOffset*3.);
-    vec3 pos = vec3(sin(randOffset*2.*PI), cos(randOffset*2.*PI), 0.);
-    float gotoCenter = sdSphere(p - pos*progr, 0.08);
-
-    final = smin(final, gotoCenter, 0.3);
-  }
-
-  
-
-  float mouseSphere = sdSphere((p - vec3(mouse*resolution.zw*2., 0.)), .1);
-
-
-  return smin(final,mouseSphere, .2);
+ 
+  return box;
 }
 
 
