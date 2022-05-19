@@ -1,5 +1,6 @@
 uniform float time;
 uniform sampler2D matcap;
+uniform vec4 button;
 uniform vec4 resolution;
 uniform vec2 mouse;
 varying vec2 vUv;
@@ -51,9 +52,10 @@ float rand(vec2 co){
 
 float sdf(vec3 p){
 
-  vec3 p1 = rotate(vec3(p), vec3(1.), time / 2.);
-  float box = smin(sdBox(p1, vec3(0.2)), sdSphere(p, 0.2), 0.2);
-  float realsphere = sdSphere(p1, (0.2));  
+  vec3 boxSize = vec3(button.zw*resolution.zw, 0.02);
+  vec3 boxPos = vec3(vec2(button.xy*resolution.zw*2.) + boxSize.xy, 0.);
+
+  float box = sdBox(p + boxPos, boxSize);
 
  
   return box;

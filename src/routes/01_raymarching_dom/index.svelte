@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { initRenderer } from '$lib/three/renderer';
+	import { calcShaderPosition, initRenderer } from '$lib/three/renderer';
 	import { onMount } from 'svelte';
 
 	import * as THREE from 'three';
@@ -10,6 +10,7 @@
 	import fragmentShader from './_shaders/fragment.glsl';
 
 	let canvas: HTMLElement;
+	let button: HTMLElement;
 
 	onMount(() => {
 		const { renderer, scene } = initRenderer(canvas);
@@ -29,6 +30,12 @@
 			a2 = (height / width) * imageAspect;
 		}
 
+		// button - x,y,width,height - normalized to vector space!
+		const btnVec = new THREE.Vector4();
+		const btnRect = button.getBoundingClientRect();
+		const btnShaderRect = calcShaderPosition(btnRect.x, btnRect.y, btnRect.width, btnRect.height);
+		btnVec.set(btnShaderRect.x, btnShaderRect.y, btnShaderRect.width, btnShaderRect.height);
+
 		const camera = new THREE.OrthographicCamera(1 / -2, 1 / 2, 1 / 2, 1 / -2, 1, 1000);
 		camera.position.set(0, 0, 2);
 
@@ -43,6 +50,9 @@
 				mouse: { value: mouse },
 				matcap: {
 					value: new THREE.TextureLoader().load(matcap)
+				},
+				button: {
+					value: btnVec
 				}
 			},
 			vertexShader,
@@ -65,6 +75,7 @@
 
 			shaderMaterial.uniforms.time.value = elapsedTime;
 			shaderMaterial.uniforms.mouse.value = mouse;
+			shaderMaterial.uniforms.button.value = btnVec;
 
 			renderer.render(scene, camera);
 
@@ -79,7 +90,7 @@
 <canvas bind:this={canvas} />
 
 <container>
-	<button>Gooeybooey</button>
+	<button bind:this={button}>Gooeybooey</button>
 </container>
 
 <style>
