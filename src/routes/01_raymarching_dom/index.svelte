@@ -6,6 +6,7 @@
 	import * as THREE from 'three';
 
 	import matcap from './matcap.png';
+	import btn from './btn.png';
 
 	import vertexShader from './_shaders/vertex.glsl';
 	import fragmentShader from './_shaders/fragment.glsl';
@@ -49,7 +50,7 @@
 			targets: buttonProgress,
 			hovering: [0, 1],
 			round: 10000,
-			easing: 'linear',
+			easing: 'spring(1, 80, 10, 0)',
 			autoPlay: false,
 			duration: 150,
 			change: () => {
@@ -78,9 +79,9 @@
 			targets: buttonProgress,
 			pressing: [0, 1],
 			round: 10000,
-			easing: 'linear',
+			easing: 'spring(1, 80, 10, 0)',
 			autoPlay: false,
-			duration: 100,
+			duration: 800,
 			change: () => {
 				buttonProgress.vector.setY(buttonProgress.pressing);
 			}
@@ -91,15 +92,14 @@
 			round: 10000,
 			easing: 'linear',
 			autoPlay: false,
-			duration: 100,
+			duration: 300,
 			change: () => {
 				buttonProgress.vector.setY(buttonProgress.pressing);
 			}
 		});
 
 		button.addEventListener('mouseover', () => {
-			console.log('enter');
-			onHoverEnter.play();
+			if (buttonProgress.hovering < 0.1) onHoverEnter.play();
 		});
 
 		button.addEventListener('mouseleave', () => {
@@ -107,7 +107,7 @@
 		});
 
 		button.addEventListener('mousedown', () => {
-			onButtonDown.play();
+			if (buttonProgress.pressing < 0.01) onButtonDown.play();
 		});
 
 		button.addEventListener('mouseup', () => {
@@ -128,6 +128,9 @@
 				mouse: { value: mouse },
 				matcap: {
 					value: new THREE.TextureLoader().load(matcap)
+				},
+				btn: {
+					value: new THREE.TextureLoader().load(btn)
 				},
 				progress: { value: buttonProgress.vector },
 				button: {
@@ -171,11 +174,6 @@
 		const loop = () => {
 			const elapsedTime = clock.getElapsedTime();
 
-			if (animation) {
-				//@ts-ignore
-				// animation.tick();
-			}
-
 			shaderMaterial.uniforms.time.value = elapsedTime;
 			shaderMaterial.uniforms.mouse.value = mouse;
 			shaderMaterial.uniforms.button.value = btnVec;
@@ -189,12 +187,12 @@
 	});
 </script>
 
-<h1>Raymarching button</h1>
-
 <canvas bind:this={canvas} />
 
 <container>
+	<h1 class="mt-16 font-bold text-5xl ">The juiciest button in the world</h1>
 	<button bind:this={button}>Gooeybooey</button>
+	<span>Raymarching GLSL shader + some hacky js stuff</span>
 </container>
 
 <style>
@@ -203,10 +201,11 @@
 	}
 
 	container {
-		display: flex;
+		@apply flex flex-col content-between justify-between text-orange-200;
 		height: 100vh;
-		justify-content: center;
+		/* justify-content: center; */
 		align-items: center;
+		opacity: 0;
 	}
 	button {
 		@apply border-black border-solid border-2 px-8 py-4 text-3xl font-bold;

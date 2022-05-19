@@ -1,5 +1,6 @@
 uniform float time;
 uniform sampler2D matcap;
+uniform sampler2D btn;
 uniform vec4 button;
 uniform vec4 resolution;
 uniform vec2 mouse;
@@ -42,6 +43,19 @@ float sdSphere(vec3 p, float r){
   return length(p)-r;
 }
 
+float sdfSphere(vec3 c, float r, vec3 p)
+{
+    return distance(p, c) - r + texture2D(btn, p.xy + vec2(0.5)).r / ((1.) * 80.);
+}
+
+float textureStamp( vec3 p, vec3 b, float stampMod )
+{
+  vec3 q = abs(p) - b;
+  vec2 size = normalize(vec2(246. ,64.));
+  float tPoint = (texture2D(btn, (p.xy/(size*0.5) + vec2(0.5))).r);
+  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0) - tPoint * stampMod;
+}
+
 float sdRoundBox( vec3 p, vec3 b, float r )
 {
   vec3 q = abs(p) - b;
@@ -58,43 +72,64 @@ float rand(vec2 co){
   return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+
+float opSmoothUnion( float d1, float d2, float k ) {
+    float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
+    return mix( d2, d1, h ) - k*h*(1.0-h); }
+
 float opSmoothSubtraction( float d1, float d2, float k ) {
     float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
     return mix( d2, -d1, h ) + k*h*(1.0-h); }
 
+float opSmoothIntersection( float d1, float d2, float k ) {
+    float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
+    return mix( d2, d1, h ) + k*h*(1.0-h); }
+
 float sdf(vec3 p){
-  vec3 p1 = rotate(p, vec3(1.,1.,1.), 0.5*progress.x);
+  vec3 p1 = rotate(p, vec3(1.,1.,0.), 0.4*progress.x);
   // p = p1;
 
   vec3 boxSize = vec3(button.zw*resolution.zw, 0.02) ;
   vec2 boxPos = vec2(button.xy*resolution.zw*2.) + boxSize.xy;
-  // float d = -boxSize.z*1.6 + progress * boxSize.z*3.1 ;
-  float d = -boxSize.z*1.6;
+  float d = -boxSize.z*1.6+0.01;
 
   float box = sdRoundBox(p1 - vec3(boxPos.x, -boxPos.y, d), boxSize*0.9, .03);
 
+  
 
   float final = box;
 
-  if(progress.x>0.1){
+  
+
+  if(progress.x>0.01){
     
     for(float i=0.; i < 16.; i++){
       float randOffset = rand(vec2(i,0.));
-      float progr =  fract(time / 3. + randOffset*3.);
-      vec2 pos = vec2(sin(randOffset*2.*PI), cos(randOffset*2.*PI))*0.35 * progress.x;
+      float progr =  1.-fract(time / 5. + randOffset*3.);
+      vec2 pos = vec2(sin(randOffset*2.*PI), cos(randOffset*2.*PI))*0.25 * progress.x;
       float bDist = distance(pos, boxPos);
-      float gotoCenter = sdSphere(p - vec3(pos*progr, -0.2*bDist), 0.02*progress.x * (1.-progr));
+      float gotoCenter = sdSphere(p1 - vec3(pos*progr, -0.1*bDist), 0.01*progress.x * (1.-progr));
 
-      final = smin(final, gotoCenter, 0.07 );
+      final = smin(final, gotoCenter, 0.04 );
     }
   }
-  
-  
 
-  float pressSub = sdRoundBox(p1 - vec3(boxPos.x, -boxPos.y, 0.08*-progress.y+0.1), boxSize, .04);
+  // float bgBox = sdBox(p+vec3(0.,0.,0.03), vec3(1., 1., 0.05));
+  // final = smin(bgBox, final, 0.01);
 
-  // return final;
-  return opSmoothSubtraction(pressSub, final, 0.015);
+
+  float commonH = 0.025;
+
+  vec3 stampPos = p1+vec3(0., boxSize.y+0.01, 0.045*progress.y-0.019);
+  vec3 stampSize =vec3(button.zw*resolution.zw * 0.9, 0.01);
+  float stampMod = -0.012;
+  
+  float text = textureStamp(stampPos, stampSize, stampMod);
+  float pressSub = sdRoundBox(p1 - vec3(boxPos.x, -boxPos.y, 0.085*-progress.y+0.09+commonH), boxSize*0.85, .03);
+
+  float postSub = opSmoothSubtraction(pressSub, final, 0.01);
+
+  return smin(postSub, text, 0.01);
 }
 
 
@@ -112,7 +147,7 @@ vec3 calcNormal( in vec3 p ) // for function f(p)
 void main() 
 { 
     float dist = length(vUv - vec2(0.5));
-    vec3 bg = mix(vec3(0.75, 0.65, 0.62), vec3(0.0), dist);
+    vec3 bg = mix(vec3(0.15, 0.15, 0.242), vec3(0.0), dist);
 
     vec2 newUV = (vUv - vec2(0.5)) * resolution.zw + vec2(0.5);
     vec3 camPos = vec3(0.,0.,2.);
