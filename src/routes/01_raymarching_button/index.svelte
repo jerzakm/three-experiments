@@ -4,6 +4,8 @@
 
 	import * as THREE from 'three';
 
+	import matcap from './matcap.png';
+
 	import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 	import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 	import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
@@ -39,19 +41,6 @@
 		const camera = new THREE.OrthographicCamera(1 / -2, 1 / 2, 1 / 2, 1 / -2, 1, 1000);
 		camera.position.set(0, 0, 2);
 
-		// Lights
-		const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-		scene.add(ambientLight);
-
-		const directionalLight = new THREE.DirectionalLight('#ffffff', 1);
-		directionalLight.castShadow = true;
-		directionalLight.shadow.mapSize.set(1024, 1024);
-		directionalLight.shadow.camera.far = 15;
-		directionalLight.shadow.normalBias = 0.05;
-		directionalLight.position.set(0.25, 2, 2.25);
-
-		scene.add(directionalLight);
-
 		let mouse = new THREE.Vector2();
 
 		const shaderMaterial = new THREE.ShaderMaterial({
@@ -62,7 +51,7 @@
 				},
 				mouse: { value: mouse },
 				matcap: {
-					value: new THREE.TextureLoader().load('070B0C_B2C7CE_728FA3_5B748B.png')
+					value: new THREE.TextureLoader().load(matcap)
 				},
 				progress: {
 					value: 0
@@ -70,11 +59,7 @@
 			},
 			vertexShader,
 			fragmentShader,
-			side: THREE.DoubleSide,
-			extensions: {
-				//@ts-ignore
-				derivatives: '#extension GL_OES_standard_derivatives : enable'
-			}
+			side: THREE.DoubleSide
 		});
 
 		const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 1, 1), shaderMaterial);

@@ -2,6 +2,7 @@
 import adapter from '@sveltejs/adapter-static';
 import preprocess from 'svelte-preprocess';
 import glsl from 'vite-plugin-glsl';
+import { threeMinifier } from '@yushijinhun/three-minifier-rollup';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -15,7 +16,7 @@ const config = {
 			enabled: false
 		},
 		vite: {
-			plugins: [glsl.default()]
+			plugins: [{ ...threeMinifier(), enforce: 'pre' }, glsl.default()]
 		}
 	}
 };

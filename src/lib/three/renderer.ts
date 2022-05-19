@@ -18,14 +18,6 @@ export const initRenderer = (canvas: HTMLElement) => {
 		alpha: true
 	});
 
-	// More realistic shadows
-	renderer.shadowMap.enabled = true;
-	renderer.shadowMap.type = PCFShadowMap;
-	renderer.physicallyCorrectLights = true;
-	renderer.outputEncoding = sRGBEncoding;
-	renderer.toneMapping = ACESFilmicToneMapping;
-	renderer.toneMappingExposure = 1;
-
 	function updateRenderer() {
 		renderer.setSize(window.innerWidth, window.innerHeight);
 		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // To avoid performance problems on devices with higher pixel ratio
@@ -34,6 +26,8 @@ export const initRenderer = (canvas: HTMLElement) => {
 	window.addEventListener('resize', () => {
 		updateRenderer();
 	});
+
+	updateRenderer();
 
 	return { scene, renderer };
 };
@@ -46,3 +40,5 @@ export const calcShaderPosition = (x: number, y: number, width: number, height: 
 		height: height / window.innerHeight
 	};
 };
+
+// 902

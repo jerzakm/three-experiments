@@ -67,10 +67,6 @@ float sdf(vec3 p){
     final = smin(final, gotoCenter, 0.3);
   }
 
-
-  float bgBox = sdBox(p + vec3(0.,0., 0.3), vec3(2.5 , 2.5,0.1));
-  final= smin(final,bgBox, 0.3);
-
   
 
   float mouseSphere = sdSphere((p - vec3(mouse*resolution.zw*2., 0.)), .1);
@@ -94,7 +90,7 @@ vec3 calcNormal( in vec3 p ) // for function f(p)
 void main() 
 { 
     float dist = length(vUv - vec2(0.5));
-    vec3 bg = mix(vec3(0.15, 0.15, 0.22), vec3(0.0), dist);
+    vec3 bg = mix(vec3(0.75, 0.65, 0.62), vec3(0.0), dist);
 
     vec2 newUV = (vUv - vec2(0.5)) * resolution.zw + vec2(0.5);
     vec3 camPos = vec3(0.,0.,2.);
