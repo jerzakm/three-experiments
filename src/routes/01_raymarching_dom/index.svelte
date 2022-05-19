@@ -78,7 +78,24 @@
 
 <canvas bind:this={canvas} />
 
+<container>
+	<button>Gooeybooey</button>
+</container>
+
 <style>
+	:global(body) {
+		overflow: hidden;
+	}
+
+	container {
+		display: flex;
+		height: 100vh;
+		justify-content: center;
+		align-items: center;
+	}
+	button {
+		@apply border-black border-solid border-2 px-4 py-2 text-3xl font-bold;
+	}
 	canvas {
 		width: 100vw;
 		height: 100vh;
