@@ -19,8 +19,8 @@
 		const imageAspect = 1;
 		let a1 = 1,
 			a2 = 1;
-		const width = window.innerWidth;
-		const height = window.innerHeight;
+		let width = window.innerWidth;
+		let height = window.innerHeight;
 
 		if (height / width > imageAspect) {
 			a1 = (width / height) * imageAspect;
@@ -68,6 +68,24 @@
 		document.addEventListener('mousemove', (e) => {
 			mouse.x = e.pageX / width - 0.5;
 			mouse.y = -e.pageY / height + 0.5;
+		});
+
+		window.addEventListener('resize', () => {
+			width = window.innerWidth;
+			height = window.innerHeight;
+
+			if (height / width > imageAspect) {
+				a1 = (width / height) * imageAspect;
+				a2 = 1;
+			} else {
+				a1 = 1;
+				a2 = (height / width) * imageAspect;
+			}
+
+			shaderMaterial.uniforms.resolution.value = new THREE.Vector4(width, height, a1, a2);
+			const btnRect = button.getBoundingClientRect();
+			const btnShaderRect = calcShaderPosition(btnRect.x, btnRect.y, btnRect.width, btnRect.height);
+			btnVec.set(btnShaderRect.x, btnShaderRect.y, btnShaderRect.width, btnShaderRect.height);
 		});
 
 		const loop = () => {
