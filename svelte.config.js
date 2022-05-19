@@ -1,5 +1,7 @@
-import adapter from '@sveltejs/adapter-auto';
+// import adapter from '@sveltejs/adapter-auto';
+import adapter from '@sveltejs/adapter-static';
 import preprocess from 'svelte-preprocess';
+import glsl from 'vite-plugin-glsl';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -8,7 +10,13 @@ const config = {
 	preprocess: preprocess(),
 
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		prerender: {
+			enabled: false
+		},
+		vite: {
+			plugins: [glsl.default()]
+		}
 	}
 };
 

@@ -1,0 +1,48 @@
+import {
+	WebGLRenderer,
+	Scene,
+	sRGBEncoding,
+	PCFShadowMap,
+	ACESFilmicToneMapping,
+	Color
+} from 'three';
+
+export const initRenderer = (canvas: HTMLElement) => {
+	const scene = new Scene();
+	scene.background = new Color('#333');
+
+	// Renderer
+	const renderer = new WebGLRenderer({
+		canvas,
+		antialias: true,
+		alpha: true
+	});
+
+	// More realistic shadows
+	renderer.shadowMap.enabled = true;
+	renderer.shadowMap.type = PCFShadowMap;
+	renderer.physicallyCorrectLights = true;
+	renderer.outputEncoding = sRGBEncoding;
+	renderer.toneMapping = ACESFilmicToneMapping;
+	renderer.toneMappingExposure = 1;
+
+	function updateRenderer() {
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // To avoid performance problems on devices with higher pixel ratio
+	}
+
+	window.addEventListener('resize', () => {
+		updateRenderer();
+	});
+
+	return { scene, renderer };
+};
+
+export const calcShaderPosition = (x: number, y: number, width: number, height: number) => {
+	return {
+		x: x / window.innerWidth - 0.5,
+		y: y / window.innerHeight - 0.5,
+		width: width / window.innerWidth,
+		height: height / window.innerHeight
+	};
+};
