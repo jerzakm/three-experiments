@@ -55,9 +55,6 @@
 			duration: 150,
 			change: () => {
 				buttonProgress.vector.setX(buttonProgress.hovering);
-			},
-			update: () => {
-				buttonProgress.vector.setX(buttonProgress.hovering);
 			}
 		});
 		const onHoverLeave = anime({
@@ -65,12 +62,9 @@
 			hovering: [1, 0],
 			round: 10000,
 			easing: 'linear',
-			autoPlay: false,
+			autoPlay: true,
 			duration: 150,
 			change: () => {
-				buttonProgress.vector.setX(buttonProgress.hovering);
-			},
-			update: () => {
 				buttonProgress.vector.setX(buttonProgress.hovering);
 			}
 		});
@@ -91,7 +85,7 @@
 			pressing: [1, 0],
 			round: 10000,
 			easing: 'linear',
-			autoPlay: false,
+			autoPlay: true,
 			duration: 300,
 			change: () => {
 				buttonProgress.vector.setY(buttonProgress.pressing);

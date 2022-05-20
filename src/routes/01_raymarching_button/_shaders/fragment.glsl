@@ -103,14 +103,14 @@ float sdf(vec3 p){
 
   if(progress.x>0.01){
     
-    for(float i=0.; i < 16.; i++){
+    for(float i=0.; i < 8.; i++){
       float randOffset = rand(vec2(i,0.));
-      float progr =  1.-fract(time / 5. + randOffset*3.);
-      vec2 pos = vec2(sin(randOffset*2.*PI), cos(randOffset*2.*PI))*0.25 * progress.x;
+      float progr =  fract(time / 3. + randOffset*3.);
+      vec2 pos = vec2(sin(randOffset*2.*PI*progr), cos(randOffset*2.*PI))*0.25 * progress.x;
       float bDist = distance(pos, boxPos);
       float gotoCenter = sdSphere(p1 - vec3(pos*progr, -0.1*bDist), 0.01*progress.x * (1.-progr));
 
-      final = smin(final, gotoCenter, 0.04 );
+      final = smin(final, gotoCenter, 0.08 );
     }
   }
 
