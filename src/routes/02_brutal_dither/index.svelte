@@ -14,7 +14,10 @@
 
 	import vertexShader from './_shaders/ditherVert.glsl';
 	import fragmentShader from './_shaders/ditherFrag.glsl';
+	import ditherFrag2 from './_shaders/ditherFrag2.glsl';
 	import { ACESFilmicToneMapping, PCFShadowMap, sRGBEncoding } from 'three';
+
+	import bayer from './bayer.png';
 
 	let canvas: HTMLElement;
 	let button: HTMLElement;
@@ -84,7 +87,7 @@
 		});
 
 		const matBg = new THREE.MeshStandardMaterial({
-			color: 0x121212,
+			color: 0x0000ff,
 			metalness: 0.0,
 			roughness: 0.85
 			// envMap: cubeTexture,
@@ -164,22 +167,43 @@
 				opacity: { value: 1.0 },
 				resolution: {
 					value: new THREE.Vector4(width, height, a1, a2)
+				},
+				bayer: {
+					value: new THREE.TextureLoader().load(bayer)
 				}
 			},
 			vertexShader,
 			fragmentShader
 		};
 
-		const ditherPass = new ShaderPass(ditherShader);
-		composer.addPass(ditherPass);
+		const steinbergShader = {
+			uniforms: {
+				tDiffuse: { value: null },
+				opacity: { value: 1.0 },
+				resolution: {
+					value: new THREE.Vector4(width, height, a1, a2)
+				}
+			},
+			vertexShader,
+			fragmentShader: ditherFrag2
+		};
+
+		// const ditherPass = new ShaderPass(ditherShader);
+		// composer.addPass(ditherPass);
+
+		const steinbergPass = new ShaderPass(steinbergShader);
+		composer.addPass(steinbergPass);
 
 		const loop = () => {
-			const elapsedTime = clock.getElapsedTime();
-			controls.update();
-			// renderer.render(scene, camera);
-			composer.render();
+			try {
+				const elapsedTime = clock.getElapsedTime();
+				controls.update();
+				composer.render();
 
-			requestAnimationFrame(loop);
+				requestAnimationFrame(loop);
+			} catch (e) {
+				console.log(e);
+			}
 		};
 		loop();
 	});
