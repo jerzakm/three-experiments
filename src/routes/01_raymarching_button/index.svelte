@@ -14,8 +14,17 @@
 	let canvas: HTMLElement;
 	let button: HTMLElement;
 
-	onMount(() => {
+	onMount(async () => {
 		const { renderer, scene } = initRenderer(canvas);
+
+		const { getProject } = await import('@theatre/core');
+
+		const studio = await import('@theatre/studio');
+
+		studio.default.initialize();
+
+		const objValues = { foo: 0, bar: true, baz: 'A string' };
+		const obj = getProject('First project').sheet('Sheet').object('First Object', objValues);
 
 		// Camera
 		const imageAspect = 1;

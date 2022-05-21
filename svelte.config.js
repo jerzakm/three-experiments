@@ -16,7 +16,13 @@ const config = {
 			enabled: false
 		},
 		vite: {
-			plugins: [{ ...threeMinifier(), enforce: 'pre' }, glsl.default()]
+			plugins: [{ ...threeMinifier(), enforce: 'pre' }, glsl.default()],
+			ssr: {
+				noExternal: ['@theatre/studio']
+			},
+			optimizeDeps: {
+				entries: ['node_modules/queue-microtask/*', 'queue-microtask', '@theatre/studio']
+			}
 		}
 	}
 };

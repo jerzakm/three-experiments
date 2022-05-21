@@ -9,7 +9,6 @@ import {
 
 export const initRenderer = (canvas: HTMLElement) => {
 	const scene = new Scene();
-	scene.background = new Color('#333');
 
 	// Renderer
 	const renderer = new WebGLRenderer({
