@@ -41,7 +41,7 @@
 		const buttonProgress = {
 			hovering: 0,
 			pressing: 0,
-			vector: new THREE.Vector4()
+			vector: new THREE.Vector4(0)
 		};
 
 		let animation: anime.AnimeInstance;
@@ -50,10 +50,10 @@
 			targets: buttonProgress,
 			hovering: [0, 1],
 			round: 10000,
-			easing: 'spring(1, 80, 10, 0)',
+			easing: 'linear',
 			autoPlay: false,
 			duration: 150,
-			change: () => {
+			update: () => {
 				buttonProgress.vector.setX(buttonProgress.hovering);
 			}
 		});
@@ -62,9 +62,9 @@
 			hovering: [1, 0],
 			round: 10000,
 			easing: 'linear',
-			autoPlay: true,
+			autoPlay: false,
 			duration: 150,
-			change: () => {
+			update: () => {
 				buttonProgress.vector.setX(buttonProgress.hovering);
 			}
 		});
@@ -73,10 +73,10 @@
 			targets: buttonProgress,
 			pressing: [0, 1],
 			round: 10000,
-			easing: 'spring(1, 80, 10, 0)',
+			easing: 'linear',
 			autoPlay: false,
-			duration: 800,
-			change: () => {
+			duration: 80,
+			update: () => {
 				buttonProgress.vector.setY(buttonProgress.pressing);
 			}
 		});
@@ -85,12 +85,14 @@
 			pressing: [1, 0],
 			round: 10000,
 			easing: 'linear',
-			autoPlay: true,
+			autoPlay: false,
 			duration: 300,
-			change: () => {
+			update: () => {
 				buttonProgress.vector.setY(buttonProgress.pressing);
 			}
 		});
+
+		buttonProgress.vector.set(0, 0, 0, 0);
 
 		button.addEventListener('mouseover', () => {
 			if (buttonProgress.hovering < 0.1) onHoverEnter.play();
@@ -173,6 +175,8 @@
 			shaderMaterial.uniforms.button.value = btnVec;
 			shaderMaterial.uniforms.progress.value = buttonProgress.vector;
 
+			console.log(buttonProgress.vector);
+
 			renderer.render(scene, camera);
 
 			requestAnimationFrame(loop);
@@ -184,7 +188,7 @@
 <canvas bind:this={canvas} />
 
 <container>
-	<h1 class="mt-16 font-bold text-5xl ">The juiciest button in the world</h1>
+	<h1 class="mt-16 font-bold text-5xl ">Raymarch goo button</h1>
 	<button bind:this={button}>Gooeybooey</button>
 	<span>Raymarching GLSL shader + some hacky js stuff</span>
 </container>
@@ -199,10 +203,10 @@
 		height: 100vh;
 		/* justify-content: center; */
 		align-items: center;
-		opacity: 0;
 	}
 	button {
 		@apply border-black border-solid border-2 px-8 py-4 text-3xl font-bold;
+		opacity: 0;
 	}
 	canvas {
 		width: 100vw;
