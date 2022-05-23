@@ -73,13 +73,13 @@ void main() {
   vec4 o = texture2D(tDiffuse, vUv);
 
   
-  // o = step(texture(iChannel0, i/8.).r, texture(iChannel1,i/iResolution.xy));
+  // o = step(texture(iChannel0, i/8.).r, texture(iChannel1,i/resolution.xy));
 
-  ivec2 p = ivec2(mod( gl_FragCoord.xy, 8.0 ));
+  ivec2 p = ivec2(mod( gl_FragCoord.xy, 4.0 ));
 	vec2 uv = gl_FragCoord.xy / resolution.xy;
 	vec3 c = texture2D( tDiffuse, vUv ).xyz;
-	c = pow( c, vec3(2.2) );	
-	c -= 1.0/255.0;
+	c = pow( c, vec3(1.0) );	
+	c -= 2.0/255.0;
 	
   vec3 d = vec3(0.0);
 	if( p.x <= 3 && p.y <= 3 )
@@ -108,14 +108,43 @@ void main() {
 	}
 
 
-
-
- 
+    vec3 TL = texture2D(tDiffuse, uv + vec2(-1, 1)/ resolution.xy).rgb;
+    vec3 TM = texture2D(tDiffuse, uv + vec2(0, 1)/ resolution.xy).rgb;
+    vec3 TR = texture2D(tDiffuse, uv + vec2(1, 1)/ resolution.xy).rgb;
+    
+    vec3 ML = texture2D(tDiffuse, uv + vec2(-1, 0)/ resolution.xy).rgb;
+    vec3 MR = texture2D(tDiffuse, uv + vec2(1, 0)/ resolution.xy).rgb;
+    
+    vec3 BL = texture2D(tDiffuse, uv + vec2(-1, -1)/ resolution.xy).rgb;
+    vec3 BM = texture2D(tDiffuse, uv + vec2(0, -1)/ resolution.xy).rgb;
+    vec3 BR = texture2D(tDiffuse, uv + vec2(1, -1)/ resolution.xy).rgb;
+                         
+    vec3 GradX = -TL + TR - 2.0 * ML + 2.0 * MR - BL + BR;
+    vec3 GradY = TL + 2.0 * TM + TR - BL - 2.0 * BM - BR;
 
   
 
+    float r = length(vec2(GradX.r, GradY.r));
+    float g = length(vec2(GradX.g, GradY.g));
+    float b = length(vec2(GradX.b, GradY.b));
 
-  gl_FragColor = vec4(d, o.a);
+
+  // gl_FragColor = vec4(d.r,d.r,d.r, o.a);
+  // gl_FragColor = vec4(r,g,b, o.a);
+
+  vec3 final = vec3(d.r, d.g, d.b);
+
+  if(r>0.1){
+    float col = 1.-(r+g+b)/3.;
+
+    col = 0.0;
+    
+    gl_FragColor = vec4(col,col,col, o.a);
+  } else {
+
+    gl_FragColor = vec4(final, o.a);
+  }
+
 	
 	
 	// //c=texture( iChannel0, uv ).xyz;

@@ -8,9 +8,8 @@
 	import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 	import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 	import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-
-	import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
-	import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader.js';
+	import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+	import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 	import vertexShader from './_shaders/ditherVert.glsl';
 	import fragmentShader from './_shaders/ditherFrag.glsl';
@@ -20,16 +19,9 @@
 	import bayer from './bayer.png';
 
 	let canvas: HTMLElement;
-	let button: HTMLElement;
 
 	onMount(async () => {
 		const { renderer, scene } = initRenderer(canvas);
-
-		const { getProject } = await import('@theatre/core');
-		const studio = await import('@theatre/studio');
-		studio.default.initialize();
-
-		const objValues = { foo: 0, bar: true, baz: 'A string' };
 
 		// Camera
 		const imageAspect = 1;
@@ -48,7 +40,6 @@
 
 		// camera
 		const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 1000);
-		camera.position.set(0, 0, 30);
 
 		const controls = new OrbitControls(camera, renderer.domElement);
 		controls.listenToKeyEvents(window); // optional
@@ -62,9 +53,68 @@
 
 		controls.maxPolarAngle = Math.PI / 2;
 
+		controls.keys = {
+			LEFT: 'ArrowLeft', //left arrow
+			UP: 'ArrowUp', // up arrow
+			RIGHT: 'ArrowRight', // right arrow
+			BOTTOM: 'ArrowDown' // down arrow
+		};
+
 		let mouse = new THREE.Vector2();
 
 		const clock = new THREE.Clock();
+
+		const loader = new FontLoader();
+
+		loader.load('/nimbus.json', function (font) {
+			const geometry1 = new TextGeometry('BRUTALISM', {
+				font: font,
+				size: 1.25,
+				height: 0.355,
+				curveSegments: 15,
+				bevelEnabled: false,
+				bevelThickness: 0.15,
+				bevelSize: 0.05,
+				bevelOffset: 0,
+				bevelSegments: 2
+			});
+
+			// geometry.computeBoundingBox();
+
+			const material1 = new THREE.MeshPhongMaterial({ color: 0xffff12, flatShading: true });
+
+			const text1 = new THREE.Mesh(geometry1, material1);
+			scene.add(text1);
+
+			const geometry2 = new TextGeometry(
+				`aka happy little coding mistakes\naka tfw something gets so ugly \n       it's starting to look good again`,
+				{
+					font: font,
+					size: 0.35,
+					height: 0.05,
+					curveSegments: 15,
+					bevelEnabled: false,
+					bevelThickness: 0.15,
+					bevelSize: 0.05,
+					bevelOffset: 0,
+					bevelSegments: 2
+				}
+			);
+
+			// geometry.computeBoundingBox();
+
+			const material2 = new THREE.MeshPhongMaterial({ color: 0x00ff3f, flatShading: true });
+
+			const text2 = new THREE.Mesh(geometry2, material1);
+			scene.add(text2);
+
+			text1.rotateY(1.2);
+			text1.rotateX(0.45);
+			text1.position.set(-18, 1, 5);
+			text2.rotateY(1.2);
+			text2.rotateX(0.2);
+			text2.position.set(-15, 0, 4);
+		});
 
 		document.addEventListener('mousemove', (e) => {
 			const { x, y } = calcShaderPosition(e.pageX, e.pageY, 0, 0);
@@ -78,32 +128,35 @@
 			envMapIntensity: 1
 		};
 
-		const material = new THREE.MeshStandardMaterial({
-			color: 0xff0000,
-			metalness: 0.0,
-			roughness: 0.85
-			// envMap: cubeTexture,
-			// envMapIntensity: API.envMapIntensity,
-		});
+		// const geometry = new THREE.BoxGeometry(4, 4, 1);
+		// const box = new THREE.Mesh(geometry, material);
+		// scene.add(box);
+		// box.position.set(0.5, 1, -2);
 
-		const matBg = new THREE.MeshStandardMaterial({
-			color: 0x0000ff,
-			metalness: 0.0,
-			roughness: 0.85
-			// envMap: cubeTexture,
-			// envMapIntensity: API.envMapIntensity,
-		});
+		const boxes: THREE.Mesh[] = [];
 
-		const geometry = new THREE.BoxGeometry(20, 5, 1);
+		const boxCount = 256;
+		const boxSize = 0.5;
+		const layerGap = 0.1;
 
-		const box = new THREE.Mesh(geometry, material);
-		// box.castShadow = true;
-		// box.receiveShadow = true;
-		scene.add(box);
+		camera.position.set(boxCount * layerGap + 3, 0, 0);
+		// camera.position.set(0.1, 0, 0);
 
-		const background = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), matBg);
-		background.position.set(0, 0, -10);
-		scene.add(background);
+		for (let i = 0; i < boxCount; i++) {
+			const material = new THREE.MeshStandardMaterial({
+				color: 0xffffff,
+				metalness: Math.random(),
+				roughness: 1
+				// envMap: cubeTexture,
+				// envMapIntensity: API.envMapIntensity,
+			});
+			const geometry = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
+			const box = new THREE.Mesh(geometry, material);
+			scene.add(box);
+			box.position.set(i * layerGap, Math.sin(i), Math.cos(i));
+
+			boxes.push(box);
+		}
 
 		//const geometry = new THREE.TorusKnotGeometry( 4, 1.5, 256, 32, 2, 3 );
 
@@ -146,20 +199,8 @@
 		const renderPass = new RenderPass(scene, camera);
 		composer.addPass(renderPass);
 
-		// color to grayscale conversion
-
-		const effectGrayScale = new ShaderPass(LuminosityShader);
-		// composer.addPass(effectGrayScale);
-
 		// you might want to use a gaussian blur filter before
 		// the next pass to improve the result of the Sobel operator
-
-		// Sobel operator
-
-		const effectSobel = new ShaderPass(SobelOperatorShader);
-		effectSobel.uniforms['resolution'].value.x = window.innerWidth * window.devicePixelRatio;
-		effectSobel.uniforms['resolution'].value.y = window.innerHeight * window.devicePixelRatio;
-		// composer.addPass(effectSobel);
 
 		const ditherShader = {
 			uniforms: {
@@ -176,7 +217,7 @@
 			fragmentShader
 		};
 
-		const steinbergShader = {
+		const ditherShader2 = {
 			uniforms: {
 				tDiffuse: { value: null },
 				opacity: { value: 1.0 },
@@ -188,17 +229,24 @@
 			fragmentShader: ditherFrag2
 		};
 
-		// const ditherPass = new ShaderPass(ditherShader);
+		const ditherPass = new ShaderPass(ditherShader);
 		// composer.addPass(ditherPass);
 
-		const steinbergPass = new ShaderPass(steinbergShader);
-		composer.addPass(steinbergPass);
+		const ditherOutlined2 = new ShaderPass(ditherShader2);
+		composer.addPass(ditherOutlined2);
 
 		const loop = () => {
 			try {
 				const elapsedTime = clock.getElapsedTime();
 				controls.update();
 				composer.render();
+
+				for (let i = 0; i < boxes.length; i++) {
+					// boxes[i].rotateX(Math.sin((elapsedTime * i * 2) / 1000000));
+					boxes[i].position.x = i * layerGap + Math.sin(elapsedTime + 100 * i) * 0.1;
+					boxes[i].rotation.x = Math.sin(elapsedTime + 1000 * i);
+					// boxes[i].rotation.x += Math.sin(i) * clock.getDelta() * 1000000;
+				}
 
 				requestAnimationFrame(loop);
 			} catch (e) {
@@ -214,6 +262,7 @@
 <style>
 	:global(body) {
 		overflow: hidden;
+		background: #ff0000;
 	}
 
 	canvas {
