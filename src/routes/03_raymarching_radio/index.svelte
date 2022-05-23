@@ -120,16 +120,50 @@
 		for (let i = 0; i < NUMBER_OF_BUTTONS; i++) {
 			const angle = ((2 * Math.PI) / NUMBER_OF_BUTTONS) * i;
 
-			radials.push({
+			const r: any = {
 				x: btnRect.x + btnRect.width / 3,
 				y: btnRect.y + btnRect.height / 2,
-				transformX: Math.sin(angle) * 250,
-				transformY: +Math.cos(angle) * 250,
+				transformX: 0,
+				transformY: 0,
 				active: false,
 				text: 'Ok',
 				opacity: 1,
-				size: 1
+				size: 1,
+				revealProgress: 0,
+				element: document.createElement('button')
+			};
+
+			r.element.innerText = 'ok';
+
+			r.element.style.position = 'fixed';
+
+			r.element.className = 'border-black border-solid border-2 px-8 py-4 text-3xl font-bold';
+
+			document.body.appendChild(r.element);
+
+			const bbox = r.element.getBoundingClientRect();
+
+			r.element.style.left = `${btnRect.x - bbox.width / 2 + btnRect.width / 2}px`;
+			r.element.style.top = `${btnRect.y - bbox.height / 2 + btnRect.height / 2}px`;
+
+			const animation = anime({
+				targets: r,
+				revealProgress: [0, 1],
+				round: 10000,
+				easing: 'linear',
+				loop: false,
+				autoplay: false,
+				duration: 800,
+				update: () => {
+					r.transformX = r.revealProgress * Math.sin(angle) * 250;
+					r.transformY = r.revealProgress * Math.cos(angle) * 250;
+					r.element.style.transform = `translate(${r.transformX}px,${r.transformY}px)`;
+				}
 			});
+
+			r.animation = animation;
+
+			radials.push(r);
 		}
 
 		radials = radials;
@@ -197,26 +231,33 @@
 		};
 		loop();
 	});
+
+	function openRadial() {
+		for (let i = 0; i < radials.length; i++) {
+			setTimeout(() => {
+				radials[i].animation.play();
+			}, i ** 2 * 40);
+		}
+	}
 </script>
 
 <canvas bind:this={canvas} />
 
 <container>
 	<h1 class="mt-16 font-bold text-5xl ">Raymarch goo button</h1>
-	<button bind:this={button}>Gooeybooey</button>
+	<button bind:this={button} on:click={openRadial}>Gooeybooey</button>
 
 	<span>Raymarching GLSL shader + some hacky js stuff</span>
 </container>
 
-{#each radials as radial}
+<!-- {#each radials as radial}
 	<button
 		class="fixed"
 		style={`left: ${radial.x}px; top: ${radial.y}px; transform: translate(${radial.transformX}px,${radial.transformY}px);`}
 	>
 		k
 	</button>
-{/each}
-
+{/each} -->
 <style>
 	:global(body) {
 		overflow: hidden;
