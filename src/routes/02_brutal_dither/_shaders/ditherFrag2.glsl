@@ -76,10 +76,9 @@ void main() {
   // o = step(texture(iChannel0, i/8.).r, texture(iChannel1,i/resolution.xy));
 
   ivec2 p = ivec2(mod( gl_FragCoord.xy, 4.0 ));
-	vec2 uv = gl_FragCoord.xy / resolution.xy;
 	vec3 c = texture2D( tDiffuse, vUv ).xyz;
-	c = pow( c, vec3(1.0) );	
-	c -= 2.0/255.0;
+	c = pow( c, vec3(1.5) );	
+	c -= 0.0/255.0;
 	
   vec3 d = vec3(0.0);
 	if( p.x <= 3 && p.y <= 3 )
@@ -108,16 +107,16 @@ void main() {
 	}
 
 
-    vec3 TL = texture2D(tDiffuse, uv + vec2(-1, 1)/ resolution.xy).rgb;
-    vec3 TM = texture2D(tDiffuse, uv + vec2(0, 1)/ resolution.xy).rgb;
-    vec3 TR = texture2D(tDiffuse, uv + vec2(1, 1)/ resolution.xy).rgb;
+    vec3 TL = texture2D(tDiffuse, vUv + vec2(-1, 1)/ resolution.xy).rgb;
+    vec3 TM = texture2D(tDiffuse, vUv + vec2(0, 1)/ resolution.xy).rgb;
+    vec3 TR = texture2D(tDiffuse, vUv + vec2(1, 1)/ resolution.xy).rgb;
     
-    vec3 ML = texture2D(tDiffuse, uv + vec2(-1, 0)/ resolution.xy).rgb;
-    vec3 MR = texture2D(tDiffuse, uv + vec2(1, 0)/ resolution.xy).rgb;
+    vec3 ML = texture2D(tDiffuse, vUv + vec2(-1, 0)/ resolution.xy).rgb;
+    vec3 MR = texture2D(tDiffuse, vUv + vec2(1, 0)/ resolution.xy).rgb;
     
-    vec3 BL = texture2D(tDiffuse, uv + vec2(-1, -1)/ resolution.xy).rgb;
-    vec3 BM = texture2D(tDiffuse, uv + vec2(0, -1)/ resolution.xy).rgb;
-    vec3 BR = texture2D(tDiffuse, uv + vec2(1, -1)/ resolution.xy).rgb;
+    vec3 BL = texture2D(tDiffuse, vUv + vec2(-1, -1)/ resolution.xy).rgb;
+    vec3 BM = texture2D(tDiffuse, vUv + vec2(0, -1)/ resolution.xy).rgb;
+    vec3 BR = texture2D(tDiffuse, vUv + vec2(1, -1)/ resolution.xy).rgb;
                          
     vec3 GradX = -TL + TR - 2.0 * ML + 2.0 * MR - BL + BR;
     vec3 GradY = TL + 2.0 * TM + TR - BL - 2.0 * BM - BR;

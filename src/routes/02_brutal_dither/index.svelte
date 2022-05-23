@@ -182,19 +182,6 @@
 		renderer.toneMapping = ACESFilmicToneMapping;
 		renderer.toneMappingExposure = 1;
 
-		window.addEventListener('resize', () => {
-			width = window.innerWidth;
-			height = window.innerHeight;
-
-			if (height / width > imageAspect) {
-				a1 = (width / height) * imageAspect;
-				a2 = 1;
-			} else {
-				a1 = 1;
-				a2 = (height / width) * imageAspect;
-			}
-		});
-
 		const composer = new EffectComposer(renderer);
 		const renderPass = new RenderPass(scene, camera);
 		composer.addPass(renderPass);
@@ -229,6 +216,25 @@
 			fragmentShader: ditherFrag2
 		};
 
+		window.addEventListener('resize', () => {
+			width = window.innerWidth;
+			height = window.innerHeight;
+
+			if (height / width > imageAspect) {
+				a1 = (width / height) * imageAspect;
+				a2 = 1;
+			} else {
+				a1 = 1;
+				a2 = (height / width) * imageAspect;
+			}
+
+			camera.aspect = width / height;
+
+			camera.updateProjectionMatrix();
+
+			ditherShader2.uniforms.resolution.value.set(width, height, a1, a2);
+		});
+
 		const ditherPass = new ShaderPass(ditherShader);
 		// composer.addPass(ditherPass);
 
@@ -244,7 +250,7 @@
 				for (let i = 0; i < boxes.length; i++) {
 					// boxes[i].rotateX(Math.sin((elapsedTime * i * 2) / 1000000));
 					boxes[i].position.x = i * layerGap + Math.sin(elapsedTime + 100 * i) * 0.1;
-					boxes[i].rotation.x = Math.sin(elapsedTime + 1000 * i);
+					boxes[i].rotation.x += Math.max(0, Math.sin(elapsedTime + 1000 * i) / 100);
 					// boxes[i].rotation.x += Math.sin(i) * clock.getDelta() * 1000000;
 				}
 

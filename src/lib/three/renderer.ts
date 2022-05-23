@@ -19,7 +19,7 @@ export const initRenderer = (canvas: HTMLElement) => {
 
 	function updateRenderer() {
 		renderer.setSize(window.innerWidth, window.innerHeight);
-		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // To avoid performance problems on devices with higher pixel ratio
+		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1)); // To avoid performance problems on devices with higher pixel ratio
 	}
 
 	window.addEventListener('resize', () => {
