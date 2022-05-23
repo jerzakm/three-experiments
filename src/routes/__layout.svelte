@@ -5,6 +5,7 @@
 <nav>
 	<a href="/01_raymarching_button">Raymarching button</a>
 	<a href="/02_brutal_dither">Brutal dither</a>
+	<a href="/03_raymarching_radio">Raymarching radio menu</a>
 </nav>
 <container>
 	<slot />
