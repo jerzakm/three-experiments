@@ -45,7 +45,8 @@ float sdSphere(vec3 p, float r){
 
 float sdfSphere(vec3 c, float r, vec3 p)
 {
-    return distance(p, c) - r + texture2D(btn, p.xy + vec2(0.5)).r / ((1.) * 80.);
+    // return distance(p, c) - r + texture2D(btn, p.xy + vec2(0.5)).r / ((1.) * 80.);
+    return distance (p,c)-r;
 }
 
 float textureStamp( vec3 p, vec3 b, float stampMod )
@@ -53,7 +54,9 @@ float textureStamp( vec3 p, vec3 b, float stampMod )
   vec3 q = abs(p) - b;
   vec2 size = normalize(vec2(246. ,64.));
   float tPoint = (texture2D(btn, (p.xy/(size*0.5) + vec2(0.5))).r);
-  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0) - tPoint * stampMod;
+
+  // return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0) - tPoint * stampMod;
+  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
 }
 
 float sdRoundBox( vec3 p, vec3 b, float r )
@@ -101,19 +104,6 @@ float sdf(vec3 p){
 
   
 
-  if(progress.x>0.01){
-    
-    for(float i=0.; i < 8.; i++){
-      float randOffset = rand(vec2(i,0.));
-      float progr =  fract(time / 3. + randOffset*3.);
-      vec2 pos = vec2(sin(randOffset*2.*PI*progr), cos(randOffset*2.*PI))*0.25 * progress.x;
-      float bDist = distance(pos, boxPos);
-      float gotoCenter = sdSphere(p1 - vec3(pos*progr, -0.1*bDist), 0.01*progress.x * (1.-progr));
-
-      final = smin(final, gotoCenter, 0.08 );
-    }
-  }
-
   // float bgBox = sdBox(p+vec3(0.,0.,0.03), vec3(1., 1., 0.05));
   // final = smin(bgBox, final, 0.01);
 
@@ -124,10 +114,11 @@ float sdf(vec3 p){
   vec3 stampSize =vec3(button.zw*resolution.zw * 0.9, 0.01);
   float stampMod = -0.012;
   
-  float text = textureStamp(stampPos, stampSize, stampMod);
+  // float text = textureStamp(stampPos, stampSize, stampMod);
+  float text = 1.;
   float pressSub = sdRoundBox(p1 - vec3(boxPos.x, -boxPos.y, 0.085*-progress.y+0.09+commonH), boxSize*0.85, .03);
 
-  float postSub = opSmoothSubtraction(pressSub, final, 0.01);
+  float postSub = opSmoothSubtraction(pressSub, final, 0.01);  
 
   return smin(postSub, text, 0.01);
 }
