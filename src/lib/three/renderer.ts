@@ -36,7 +36,7 @@ export const calcShaderPosition = (x: number, y: number, width: number, height: 
 		x: x / window.innerWidth - 0.5,
 		y: y / window.innerHeight - 0.5,
 		width: width / window.innerWidth,
-		height: height / window.innerHeight
+		height: height / window.innerWidth
 	};
 };
 

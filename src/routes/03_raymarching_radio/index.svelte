@@ -13,6 +13,9 @@
 	let button: HTMLElement;
 
 	let radials: any[] = [];
+	const NUMBER_OF_BUTTONS = 8;
+
+	let opened = false;
 
 	onMount(async () => {
 		const { renderer, scene } = initRenderer(canvas);
@@ -113,12 +116,8 @@
 
 		let mouse = new THREE.Vector2();
 
-		const radialUni = [];
-
-		const NUMBER_OF_BUTTONS = 8;
-
 		for (let i = 0; i < NUMBER_OF_BUTTONS; i++) {
-			const angle = ((2 * Math.PI) / NUMBER_OF_BUTTONS) * i;
+			const angle = ((Math.PI * 2) / NUMBER_OF_BUTTONS) * i - Math.PI;
 
 			const r: any = {
 				x: btnRect.x + btnRect.width / 3,
@@ -126,18 +125,18 @@
 				transformX: 0,
 				transformY: 0,
 				active: false,
-				text: 'Ok',
+				text: i,
 				opacity: 1,
 				size: 1,
 				revealProgress: 0,
 				element: document.createElement('button')
 			};
 
-			r.element.innerText = 'ok';
+			r.element.innerText = i;
 
 			r.element.style.position = 'fixed';
 
-			r.element.className = 'border-black border-solid border-2 px-8 py-4 text-3xl font-bold';
+			r.element.className = 'px-8 py-4 text-3xl font-bold';
 
 			document.body.appendChild(r.element);
 
@@ -145,18 +144,22 @@
 
 			r.element.style.left = `${btnRect.x - bbox.width / 2 + btnRect.width / 2}px`;
 			r.element.style.top = `${btnRect.y - bbox.height / 2 + btnRect.height / 2}px`;
+			r.element.style.pointerEvents = 'none';
+			r.element.style.opacity = 0;
 
 			const animation = anime({
 				targets: r,
 				revealProgress: [0, 1],
 				round: 10000,
-				easing: 'linear',
+				easing: 'spring(2, 80, 12, 5)',
+				// easing: 'linear',
 				loop: false,
 				autoplay: false,
-				duration: 800,
+				duration: 500,
 				update: () => {
-					r.transformX = r.revealProgress * Math.sin(angle) * 250;
-					r.transformY = r.revealProgress * Math.cos(angle) * 250;
+					const d = 185;
+					r.transformX = r.revealProgress * Math.sin(angle) * d;
+					r.transformY = r.revealProgress * Math.cos(angle) * d;
 					r.element.style.transform = `translate(${r.transformX}px,${r.transformY}px)`;
 				}
 			});
@@ -181,7 +184,8 @@
 				progress: { value: buttonProgress.vector },
 				button: {
 					value: btnVec
-				}
+				},
+				radials: { value: Array(NUMBER_OF_BUTTONS).fill(new THREE.Vector4(0)) }
 			},
 			vertexShader,
 			fragmentShader,
@@ -225,6 +229,16 @@
 			shaderMaterial.uniforms.button.value = btnVec;
 			shaderMaterial.uniforms.progress.value = buttonProgress.vector;
 
+			const nUni = [];
+			for (let i = 0; i < NUMBER_OF_BUTTONS; i++) {
+				const bbox = radials[i].element.getBoundingClientRect();
+				const unis = calcShaderPosition(bbox.x, bbox.y, bbox.width, bbox.height);
+				nUni.push(new THREE.Vector4(unis.x, unis.y, unis.width, unis.height));
+				radials[i].element.style.opacity = radials[i].revealProgress - 0.1;
+			}
+
+			shaderMaterial.uniforms.radials.value = nUni;
+
 			renderer.render(scene, camera);
 
 			requestAnimationFrame(loop);
@@ -234,10 +248,18 @@
 
 	function openRadial() {
 		for (let i = 0; i < radials.length; i++) {
+			const delay = 70;
 			setTimeout(() => {
-				radials[i].animation.play();
-			}, i ** 2 * 40);
+				if (opened) {
+					radials[i].animation.reverse();
+					radials[i].animation.play();
+				} else {
+					radials[i].animation.play();
+					radials[i].animation.reverse();
+				}
+			}, i * delay);
 		}
+		opened = !opened;
 	}
 </script>
 
@@ -245,7 +267,7 @@
 
 <container>
 	<h1 class="mt-16 font-bold text-5xl ">Raymarch goo button</h1>
-	<button bind:this={button} on:click={openRadial}>Gooeybooey</button>
+	<button bind:this={button} on:click={openRadial}>{!opened ? 'Button' : 'Button'}</button>
 
 	<span>Raymarching GLSL shader + some hacky js stuff</span>
 </container>
@@ -264,14 +286,14 @@
 	}
 
 	container {
-		@apply flex flex-col content-between justify-between text-orange-200;
+		@apply flex flex-col content-between justify-between;
 		height: 100vh;
 		/* justify-content: center; */
 		align-items: center;
 	}
 
 	button {
-		@apply border-black border-solid border-2 px-8 py-4 text-3xl font-bold;
+		@apply px-8 py-4 text-3xl font-bold;
 		/* opacity: 0; */
 	}
 	canvas {

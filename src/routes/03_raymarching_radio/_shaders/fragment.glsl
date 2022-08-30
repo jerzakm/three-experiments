@@ -1,6 +1,7 @@
 uniform float time;
 uniform sampler2D matcap;
 uniform sampler2D btn;
+uniform vec4[8] radials;
 uniform vec4 button;
 uniform vec4 resolution;
 uniform vec2 mouse;
@@ -88,39 +89,47 @@ float opSmoothIntersection( float d1, float d2, float k ) {
     float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
     return mix( d2, d1, h ) + k*h*(1.0-h); }
 
-float sdf(vec3 p){
-  vec3 p1 = rotate(p, vec3(1.,1.,0.), 0.4*progress.x);
-  // p = p1;
+float sdf(vec3 p){    
 
-  vec3 boxSize = vec3(button.zw*resolution.zw, 0.02) ;
-  vec2 boxPos = vec2(button.xy*resolution.zw*2.) + boxSize.xy;
-  float d = -boxSize.z*1.6+0.01;
+  vec2 boxPos = vec2(button.xy*resolution.zw*2.) + button.zw;
+  float d = -button.z*1.6+0.01;
 
-  float box = sdRoundBox(p1 - vec3(boxPos.x, -boxPos.y, d), boxSize*0.9, .03);
+  float mainSize = max(button.z, button.w)*0.9;
 
-  
+  float sphere = sdSphere(p - vec3(boxPos.x, -boxPos.y, d), mainSize);
+  float box = sdRoundBox(p - vec3(boxPos.x, -boxPos.y, -mainSize), vec3(mainSize),0.01);
+
+  float boxSub = sdRoundBox(p - vec3(boxPos.x, -boxPos.y, 0.2-0.125*progress.x-0.02*progress.y), vec3(mainSize*0.95-mainSize*0.3*progress.y),0.01);
+
+  box = opSmoothSubtraction(boxSub, box, 0.01);
 
   float final = box;
 
+  for(int i = 0; i < radials.length(); i++){
+    vec4 r = radials[i];
+    float d = min(distance(vec2(0), vec2(-r.x*2. - r.z, r.y + r.w))*8.,1.);    
+    float depth = 0.2 - d* 0.2;    
+
+    float mouseD = distance(mouse, vec2(-r.x*2. - r.z, r.y + r.w));
+
+    if(d>0.01){
+      float radialSphere = sdSphere(p + vec3(-r.x*2. - r.z, r.y + r.w, depth), r.z*1.5*d);
+      float radialSphereSub = sdSphere(p + vec3(-r.x*2. - r.z, r.y + r.w, depth+r.z*d), r.z*1.5*d);
+      float sub = opSmoothSubtraction(radialSphere, radialSphereSub, 0.01);
+      final = smin(final, sub, 0.05);
+
+
+      // vec3 p1 = rotate(p, vec3(0., 1.,1.), sin(time+100.*float(i))*0.3);
+      // float radialSquare = sdBox(p1 + vec3(-r.x*2. - r.z, r.y + r.w, depth), vec3(r.z));
+      // final = smin(final, radialSquare, 0.05);
+    }        
+  }
+
+
   
-
-  // float bgBox = sdBox(p+vec3(0.,0.,0.03), vec3(1., 1., 0.05));
-  // final = smin(bgBox, final, 0.01);
-
-
-  float commonH = 0.025;
-
-  vec3 stampPos = p1+vec3(0., boxSize.y+0.01, 0.045*progress.y-0.019);
-  vec3 stampSize =vec3(button.zw*resolution.zw * 0.9, 0.01);
-  float stampMod = -0.012;
-  
-  // float text = textureStamp(stampPos, stampSize, stampMod);
-  float text = 1.;
-  float pressSub = sdRoundBox(p1 - vec3(boxPos.x, -boxPos.y, 0.085*-progress.y+0.09+commonH), boxSize*0.85, .03);
-
-  float postSub = opSmoothSubtraction(pressSub, final, 0.01);  
-
-  return smin(postSub, text, 0.01);
+  // float boxHover = opSmoothSubtraction(boxSub, final, 0.01);
+  // return boxHover;
+  return final;
 }
 
 
@@ -138,7 +147,7 @@ vec3 calcNormal( in vec3 p ) // for function f(p)
 void main() 
 { 
     float dist = length(vUv - vec2(0.5));
-    vec3 bg = mix(vec3(0.15, 0.15, 0.242), vec3(0.0), dist);
+    vec3 bg = mix(vec3(.15, 0.15, 0.13), vec3(0.0), dist);
 
     vec2 newUV = (vUv - vec2(0.5)) * resolution.zw + vec2(0.5);
     vec3 camPos = vec3(0.,0.,2.);
@@ -149,7 +158,7 @@ void main()
     float t=0.;
     float tMax = 5.;
 
-    for(int i=0; i<256; ++i){
+    for(int i=0; i<128; ++i){
       vec3 pos = camPos + t*ray;
       float h = sdf(pos);
       if(h<0.0001 || t>tMax) break;

@@ -16,4 +16,7 @@
 		@apply fixed top-0 flex flex-col z-50 py-4 px-2;
 		background-color: rgba(255, 255, 255, 0.226);
 	}
+	container {
+		min-height: 90vh;
+	}
 </style>
